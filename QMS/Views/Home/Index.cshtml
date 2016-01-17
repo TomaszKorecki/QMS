@@ -1,0 +1,256 @@
+﻿@using QMS.Models
+@model QMS.Models.ViewModels.HomeViewModel
+
+@{
+	ViewBag.Title = "Home";
+}
+
+@*<div class="jumbotron">
+		<img src="@Url.Content("~/Content/peoplestand.png")" class="img-rounded" alt="Cinque Terre" >
+	</div>*@
+
+@*<div class="row">
+		<div class="col-md-4">
+			<h2>Getting started</h2>
+			<p>
+				ASP.NET MVC gives you a powerful, patterns-based way to build dynamic websites that
+				enables a clean separation of concerns and gives you full control over markup
+				for enjoyable, agile development.
+			</p>
+			<p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301865">Learn more &raquo;</a></p>
+		</div>
+		<div class="col-md-4">
+			<h2>Get more libraries</h2>
+			<p>NuGet is a free Visual Studio extension that makes it easy to add, remove, and update libraries and tools in Visual Studio projects.</p>
+			<p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301866">Learn more &raquo;</a></p>
+		</div>
+		<div class="col-md-4">
+			<h2>Web Hosting</h2>
+			<p>You can easily find a web hosting company that offers the right mix of features and price for your applications.</p>
+			<p><a class="btn btn-default" href="http://go.microsoft.com/fwlink/?LinkId=301867">Learn more &raquo;</a></p>
+		</div>
+	</div>*@
+
+
+<h2>Sensors</h2>
+<div class="row">
+	<div class="col-md-3">
+		<h3>Temperature</h3>
+		@{
+			bool isConnected = Model.SensorsRepository.TemperatureSensor.IsConnected;
+			if (isConnected) {
+				<h4>
+					<span class="glyphicon glyphicon-ok-sign"></span>
+					Connected
+				</h4>
+
+				<div class="form-group">
+					<textarea readonly class="form-control" rows="5" id="temperature-text-area"></textarea>
+				</div>
+			} else {
+				<h4>
+					<span class="glyphicon glyphicon-remove-sign"></span>
+					Not Connected
+				</h4>
+			}
+		}
+	</div>
+	<div class="col-md-3">
+		<h3>Weight</h3>
+		@{
+			isConnected = Model.SensorsRepository.WeightSensor.IsConnected;
+			if (isConnected) {
+				<h4>
+					<span class="glyphicon glyphicon-ok-sign"></span>
+					Connected
+				</h4>
+
+				<div class="form-group">
+					<textarea readonly class="form-control" rows="5" id="weight-text-area"></textarea>
+				</div>
+			} else {
+				<h4>
+					<span class="glyphicon glyphicon-remove-sign"></span>
+					Not Connected
+				</h4>
+			}
+		}
+
+	</div>
+	<div class="col-md-3">
+		<h3>Invalid</h3>
+		@{
+			isConnected = Model.SensorsRepository.InvalidSensor.IsConnected;
+			if (isConnected) {
+				<h4>
+					<span class="glyphicon glyphicon-ok-sign"></span>
+					Connected
+				</h4>
+
+				<div class="form-group">
+					<textarea readonly class="form-control" rows="5" id="invalid-text-area"></textarea>
+				</div>
+			} else {
+				<h4>
+					<span class="glyphicon glyphicon-remove-sign"></span>
+					Not Connected
+				</h4>
+			}
+		}
+
+	</div>
+	<div class="col-md-3">
+		<h3>Pregnant</h3>
+		@{
+			isConnected = Model.SensorsRepository.PregnantSensor.IsConnected;
+			if (isConnected) {
+				<h4>
+					<span class="glyphicon glyphicon-ok-sign"></span>
+					Connected
+				</h4>
+
+				<div class="form-group">
+					<textarea readonly class="form-control" rows="5" id="pregnant-text-area"></textarea>
+				</div>
+			} else {
+				<h4>
+					<span class="glyphicon glyphicon-remove-sign"></span>
+					Not Connected
+				</h4>
+			}
+		}
+	</div>
+</div>
+
+<h2>Queues</h2>
+
+<table class="table table-hover table-condensed">
+	<thead>
+		<tr>
+			<th>Id</th>
+			<th>Name</th>
+			<th>Handled people</th>
+			<th>Mean handling time</th>
+		</tr>
+	</thead>
+
+	<tbody>
+		@{
+			foreach (var queue in Model.QueuesRepository.Queues) {
+				var handledId = "queue-table-handled-" + queue.Id;
+				var meanWaitingTimeId = "queue-table-mean-" + queue.Id;
+				<tr>
+					<td>
+						@queue.Id
+					</td>
+					<td>
+						@queue.Name
+					</td>
+					<td id=@handledId>
+						@queue.PeopleHandled
+					</td>
+					<td id=@meanWaitingTimeId>
+						@queue.MeanWaitingTime
+					</td>
+				</tr>
+			}
+		}
+	</tbody>
+</table>
+
+<h2>People in queues</h2>
+
+@foreach (var queue in Model.QueuesRepository.Queues.OrderBy(x => x.Id)) {
+	<div class="col-md-12">
+		<div class="row">
+			<h3>@queue.Name</h3>
+		</div>
+		@{
+	var id = "text-area-queue-" + queue.Id;
+	<div class="form-group">
+		<textarea style="background-color: white; min-width: 100%" readonly class="form-control" rows="10" id=@id></textarea>
+	</div>
+		}
+	</div>
+}
+
+
+
+<script type="text/javascript">
+	console.log("Start signalR connecting procedure");
+	var qsmHub = $.connection.qmsHub;
+
+	qsmHub.client.onNewSensorDataReceived = function (sensorName, message) {
+		var id = '#' + sensorName + '-text-area';
+		var textArea = $(id);
+		var date = new Date(Date.parse(message.MeasureTime));
+		var time = date.toLocaleTimeString();
+		var miliseconds = date.getMilliseconds();
+		var log = "> [" + time + ":" + miliseconds + "] " + message.Data + "\n";
+		textArea.val(textArea.val() + log);
+
+		textArea.animate({
+			scrollTop: $(id)[0].scrollHeight - $(id).height()
+		});
+		console.log(log);
+	}
+
+	qsmHub.client.onRequestToSensorSent = function (sensorName, date) {
+		var id = '#' + sensorName + '-text-area';
+		var textArea = $(id);
+		date = new Date(Date.parse(date));
+		var time = date.toLocaleTimeString();
+		var miliseconds = date.getMilliseconds();
+		var log = "< [" + time + ":" + miliseconds + "] " + "Sent data req\n";
+		textArea.val(textArea.val() + log);
+
+		textArea.animate({
+			scrollTop: $(id)[0].scrollHeight - $(id).height()
+		});
+
+		console.log(log);
+	}
+
+	qsmHub.client.updateQueueLogs = updateQueueValues;
+
+	$.connection.hub.start().done(function () {
+		qsmHub.server.registerBrowser();
+	});
+
+	jQuery.fn.flash = function (color, duration) {
+		var current = this.css('color');
+		this.animate({ color: 'rgb(' + color + ')' }, duration / 2);
+		this.animate({ color: current }, duration / 2);
+	}
+
+	function updateQueueValues(queue) {
+		var id = '#text-area-queue-' + queue.Id;
+		var textArea = $(id);
+		textArea.val();
+		var logs = '';
+		for (var i = 0; i < queue.WaitingPeoples.length; i++) {
+			//var log = queue.WaitingPeoples[i].Guid + "\n";
+			var log = queue.WaitingPeoples[i].Guid + ":   ";
+			log += queue.WaitingPeoples[i].Temperature.toFixed(1) + " st.C, ";
+			log += queue.WaitingPeoples[i].Weight.toFixed(2) + " kg, ";
+			log += queue.WaitingPeoples[i].IsPregnant ? "pregnant" : "not pregnant" + ", ";
+			log += queue.WaitingPeoples[i].IsInvalid ? "invalid\n" : "not invalid\n";
+			logs += log;
+		}
+
+		textArea.val(logs);
+
+		//var handledId = "queue-table-handled-" + queue.Id;
+		//var meanWaitingTimeId = "queue-table-mean-" + queue.Id;
+
+		var handledRow = $("#queue-table-handled-" + queue.Id);
+		handledRow.text(queue.PeopleHandled);
+	}
+
+	function updateQueues(queues) {
+		for (var i = 0; i < queues.length; i++) {
+			updateQueueValues(queues[i]);
+		}
+	}
+
+</script>
