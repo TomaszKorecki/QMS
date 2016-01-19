@@ -7,8 +7,8 @@
     <ProjectGuid>{7BC44E54-A91F-4876-9AEF-230E33BD20AD}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>InvalidSensor</RootNamespace>
-    <AssemblyName>InvalidSensor</AssemblyName>
+    <RootNamespace>CrippledSensor</RootNamespace>
+    <AssemblyName>CrippledSensor</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -61,7 +61,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="InvalidSensorProgram.cs" />
+    <Compile Include="CrippledSensorProgram.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

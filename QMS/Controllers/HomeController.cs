@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Web.Mvc;
@@ -27,11 +28,23 @@ namespace QMS.Controllers {
 			return View(model);
 		}
 
+		[HttpGet]
+		public ActionResult GetQSMSystemState() {
+
+			var queues = new List<object>();
+
+			foreach (var queue in queuesRepository.Queues.Values.OrderBy(x => x.Id)) {
+				queues.Add(new {name = queue.Name, id = queue.Id, isOpened = queue.IsOpened, meanWaitingTime = queue.MeanWaitingTime, waitingPeopleCount = queue.WaitingPeoplesCount});
+			}
+
+			return Json(new {queues}, JsonRequestBehavior.AllowGet);
+		}
+
 		public ActionResult LastSensorMessages(DateTime fromDateTime) {
 			return Json(new {
 				temperatureLogs = sensorsRepository.TemperatureSensor.MeasuredData.Where(x => x.MeasureTime > fromDateTime),
 				weightLogs = sensorsRepository.WeightSensor.MeasuredData.Where(x => x.MeasureTime > fromDateTime),
-				invalidLogs = sensorsRepository.InvalidSensor.MeasuredData.Where(x => x.MeasureTime > fromDateTime),
+				crippledLogs = sensorsRepository.CrippledSensor.MeasuredData.Where(x => x.MeasureTime > fromDateTime),
 				pregnantLogs = sensorsRepository.PregnantSensor.MeasuredData.Where(x => x.MeasureTime > fromDateTime)
 			});
 		}

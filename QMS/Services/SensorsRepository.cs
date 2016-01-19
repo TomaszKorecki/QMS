@@ -12,7 +12,7 @@ namespace QMS.Services {
 		private static SensorsRepository instance;
 
 		private SensorsRepository() {
-			InvalidSensor = new ServerSensor<bool>();
+			CrippledSensor = new ServerSensor<bool>();
 			PregnantSensor = new ServerSensor<bool>();
 			TemperatureSensor = new ServerSensor<float>();
 			WeightSensor = new ServerSensor<float>();
@@ -26,7 +26,7 @@ namespace QMS.Services {
 			}
 		}
 
-		public ServerSensor<bool> InvalidSensor { get; set; }
+		public ServerSensor<bool> CrippledSensor { get; set; }
 		public ServerSensor<bool> PregnantSensor { get; set; }
 		public ServerSensor<float> TemperatureSensor { get; set; }
 		public ServerSensor<float> WeightSensor { get; set; }
@@ -34,7 +34,7 @@ namespace QMS.Services {
 		public List<string> ConnectionIds {
 			get {
 				return new List<string>() {
-					InvalidSensor.ConnectionId,
+					CrippledSensor.ConnectionId,
 					PregnantSensor.ConnectionId,
 					TemperatureSensor.ConnectionId,
 					WeightSensor.ConnectionId
@@ -43,8 +43,8 @@ namespace QMS.Services {
 		}
 
 		public bool ResetSensor(string connectionId) {
-			if (InvalidSensor.ConnectionId == connectionId) {
-				InvalidSensor.IsConnected = false;
+			if (CrippledSensor.ConnectionId == connectionId) {
+				CrippledSensor.IsConnected = false;
 				return true;
 			}
 			if (PregnantSensor.ConnectionId == connectionId) {

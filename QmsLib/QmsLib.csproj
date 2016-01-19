@@ -80,6 +80,7 @@
     <Compile Include="Models\Person.cs" />
     <Compile Include="Models\Sensor.cs" />
     <Compile Include="Models\SensorData.cs" />
+    <Compile Include="Models\WaitingPersonMeta.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RandomUtils.cs" />
   </ItemGroup>

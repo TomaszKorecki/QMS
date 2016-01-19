@@ -8,5 +8,7 @@ namespace QMS.Models {
 	public class HandledPerson {
 		public Person Person { get; set; }
 		public int QueueId { get; set; }
+		public TimeSpan WaitingTime;
+		public DateTime WaitingStartedAt;
 	}
 }

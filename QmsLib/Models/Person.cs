@@ -11,10 +11,10 @@ namespace QmsLib.Models {
 		public double Weight { get; set; }
 		public bool IsPregnant { get; set; }
 		public double Temperature { get; set; }
-		public bool IsInvalid { get; set; }
+		public bool IsCrippled { get; set; }
 
 		//public override String ToString() {
-		//	return Name + ": " + (IsPregnant ? "Pregnant" : "Not pregnant") + ", " + (IsInvalid ? "Invalid" : "Not invalid") +
+		//	return Name + ": " + (IsPregnant ? "Pregnant" : "Not pregnant") + ", " + (IsCrippled ? "Invalid" : "Not invalid") +
 		//			", " + Age + " years, " + (int)Weight + " kg, " + (int)Temperature + " st. C";
 		//}
 	}

@@ -9,7 +9,7 @@ namespace QMS.Services {
 		private static QueuesRepository instance;
 
 		private QueuesRepository() {
-			Queues = new List<ServerQueue>();
+			Queues = new Dictionary<int, ServerQueue>();
 		}
 
 		public static QueuesRepository Instance {
@@ -20,38 +20,62 @@ namespace QMS.Services {
 			}
 		}
 
-		public List<ServerQueue> Queues { get; set; }
+		public Dictionary<int, ServerQueue> Queues { get; set; }
 
 		public void ResetQueue(string connectionId) {
-			Queues.RemoveAll(x => x.ConnectionId == connectionId);
+			var queue = Queues.FirstOrDefault(x => x.Value.ConnectionId == connectionId);
+			Queues.Remove(queue.Key);
 		}
 
 		public ServerQueue ChooseQueueForPerson(Person person) {
-			var firstQueue = Queues.FirstOrDefault(x => x.Id == 1);
-			var secondQueue = Queues.FirstOrDefault(x => x.Id == 2);
-			var thirdQueue = Queues.FirstOrDefault(x => x.Id == 3);
+			var queues = Queues.Values.ToList().Where(x => x.IsOpened).OrderBy(x => x.Id).ToList();
 
-			if (person.IsInvalid || person.IsPregnant && (firstQueue.WaitingPeoplesCount < secondQueue.WaitingPeoplesCount &&
-														firstQueue.WaitingPeoplesCount < thirdQueue.WaitingPeoplesCount)) {
+			var firstQueue = queues.First();
 
-				firstQueue.WaitingPeoples.Enqueue(person);
-				return firstQueue;
+			if (person.IsCrippled || person.IsPregnant) {
+				var mostShorterQueue = queues.First(x => x.WaitingPeoplesCount == queues.Min(y => y.WaitingPeoplesCount));
+				mostShorterQueue.WaitingPeoples.Add(person);
+				return mostShorterQueue;
 			}
 
-
-			if (secondQueue.WaitingPeoplesCount > thirdQueue.WaitingPeoplesCount) {
-				thirdQueue.WaitingPeoples.Enqueue(person);
-				return thirdQueue;
+			if (queues.Skip(1).All(x => x.WaitingPeoplesCount > firstQueue.WaitingPeoplesCount) && firstQueue.WaitingPeoplesCount <= 1) {
+				firstQueue.WaitingPeoples.Add(person);
+				return firstQueue;	
 			}
 
-			secondQueue.WaitingPeoples.Enqueue(person);
-			return secondQueue;
+			//Let's always have first queue missed
+			var nextQueues = queues.Skip(1).OrderBy(x => x.WaitingPeoples.Count);
+
+			var next = nextQueues.First();
+			next.WaitingPeoples.Add(person);
+			return next;
 		}
 
-		public void RemovePersonFromQueue(Guid guid, int queueId) {
-			var queue = Queues.FirstOrDefault(x => x.Id == queueId);
-			queue.PeopleHandled++;
-			queue.WaitingPeoples.Dequeue();
+		public void RemovePersonFromQueue(WaitingPersonMeta personMeta, int queueId) {
+			if (Queues.ContainsKey(queueId)) {
+				var queue = Queues[queueId];
+
+				queue.WaitingHistory.Add(personMeta);
+
+				if (queue.WaitingPeoplesCount > 0)
+					queue.WaitingPeoples.RemoveAll(x => x.Guid == personMeta.PersonGuid);
+			}
+		}
+
+		public void StartQueue(int id) {
+			var queue = Queues[id];
+
+			if (queue != null) {
+				queue.IsOpened = true;
+			}
+		}
+
+		public void StopQueue(int id) {
+			var queue = Queues[id];
+
+			if (queue != null) {
+				queue.IsOpened = false;
+			}
 		}
 	}
 }

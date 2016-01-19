@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web.Helpers;
 using Microsoft.AspNet.SignalR;
 using Ninject;
 using QmsLib.Models;
@@ -27,20 +28,25 @@ namespace QMS.Controllers.Hubs {
 		public void RegisterQueue(string queueName, int queueId) {
 			Clients.Caller.OnRegisterConfim();
 
-			queuesRepository.Queues.Add(new ServerQueue() {
+			ServerQueue queue = new ServerQueue() {
 				Name = queueName,
 				Id = queueId,
-				ConnectionId = Context.ConnectionId
-			});
+				ConnectionId = Context.ConnectionId,
+				IsOpened = true
+			};
+
+			lock (queuesRepository) {
+				queuesRepository.Queues.Add(queueId, queue);
+			}
 		}
 
 		public void RegisterSensor(string sensorName) {
 			if (sensorName.StartsWith("Weight")) {
 				sensorsRepository.WeightSensor.ConnectionId = Context.ConnectionId;
 				sensorsRepository.WeightSensor.IsConnected = true;
-			} else if (sensorName.StartsWith("Invalid")) {
-				sensorsRepository.InvalidSensor.ConnectionId = Context.ConnectionId;
-				sensorsRepository.InvalidSensor.IsConnected = true;
+			} else if (sensorName.StartsWith("Crippled")) {
+				sensorsRepository.CrippledSensor.ConnectionId = Context.ConnectionId;
+				sensorsRepository.CrippledSensor.IsConnected = true;
 			} else if (sensorName.StartsWith("Temperature")) {
 				sensorsRepository.TemperatureSensor.ConnectionId = Context.ConnectionId;
 				sensorsRepository.TemperatureSensor.IsConnected = true;
@@ -76,14 +82,14 @@ namespace QMS.Controllers.Hubs {
 				//weight is a trigger
 				RequestDataFromSensors();
 
-			} else if (sensorName.StartsWith("Invalid")) {
+			} else if (sensorName.StartsWith("Crippled")) {
 				var data = new MeasuredData<bool>() { Data = Convert.ToBoolean(measuredData), MeasureTime = DateTime.Now };
-				sensorsRepository.InvalidSensor.AddMeasuredData(data);
+				sensorsRepository.CrippledSensor.AddMeasuredData(data);
 
-				statisticsService.UnorderedPersonInvalid = data.Data;
+				statisticsService.UnorderedPersonCrippled = data.Data;
 
 				if (!String.IsNullOrEmpty(browserConnectionId))
-					Clients.Client(browserConnectionId).onNewSensorDataReceived("invalid", data);
+					Clients.Client(browserConnectionId).onNewSensorDataReceived("crippled", data);
 			} else if (sensorName.StartsWith("Temperature")) {
 				var data = new MeasuredData<float>() { Data = Convert.ToSingle(measuredData), MeasureTime = DateTime.Now };
 				sensorsRepository.TemperatureSensor.AddMeasuredData(data);
@@ -107,11 +113,18 @@ namespace QMS.Controllers.Hubs {
 				var queue = queuesRepository.ChooseQueueForPerson(person);
 
 				Clients.Client(queue.ConnectionId).AddPersonToQueue(person.Guid);
+
 				if (!String.IsNullOrEmpty(browserConnectionId))
 					Clients.Client(browserConnectionId).updateQueueLogs(queue);
 
+				StatisticsService.Instance.HandledPeople.Add(person.Guid, new HandledPerson() {
+					Person = person,
+					QueueId = queue.Id,
+					WaitingStartedAt = DateTime.Now
+				});
+
 				statisticsService.UnorderedPerson = null;
-				statisticsService.UnorderedPersonInvalid = null;
+				statisticsService.UnorderedPersonCrippled = null;
 				statisticsService.UnorderedPersonPregnant = null;
 				statisticsService.UnorderedPersonTemperature = null;
 				statisticsService.UnorderedPersonWeight = null;
@@ -126,16 +139,28 @@ namespace QMS.Controllers.Hubs {
 
 				Clients.Client(BrowserStateRepository.ConnectionId).onRequestToSensorSent("temperature", DateTime.Now);
 				Clients.Client(BrowserStateRepository.ConnectionId).onRequestToSensorSent("pregnant", DateTime.Now);
-				Clients.Client(BrowserStateRepository.ConnectionId).onRequestToSensorSent("invalid", DateTime.Now);
+				Clients.Client(BrowserStateRepository.ConnectionId).onRequestToSensorSent("crippled", DateTime.Now);
 			}
 		}
 
 
-		public void PersonHandledInQueue(int queueId, Guid guid) {
-			queuesRepository.RemovePersonFromQueue(guid, queueId);
+		public void PersonHandledInQueue(int queueId, WaitingPersonMeta personMeta) {
+			queuesRepository.RemovePersonFromQueue(personMeta, queueId);
+
+			var handledPerson = StatisticsService.Instance.HandledPeople[personMeta.PersonGuid];
+			handledPerson.WaitingTime = personMeta.StopWaitingTime - personMeta.StartWaitingTime;
+
 			if (!String.IsNullOrEmpty(BrowserStateRepository.ConnectionId)) {
-				var queue = queuesRepository.Queues.FirstOrDefault(x => x.Id == queueId);
-				Clients.Client(queue.ConnectionId).updateQueueLogs(queue);
+				var queue = queuesRepository.Queues[queueId];
+				Clients.Client(BrowserStateRepository.ConnectionId).updateQueueLogs(queue);
+			}
+		}
+
+		public void ChangeQueueState(int queueId, bool open) {
+			if (open) {
+				queuesRepository.StartQueue(queueId);
+			} else {
+				queuesRepository.StopQueue(queueId);
 			}
 		}
 

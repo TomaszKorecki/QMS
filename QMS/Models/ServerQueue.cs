@@ -8,23 +8,21 @@ namespace QMS.Models {
 		public string Name { get; set; }
 		public int Id { get; set; }
 		public string ConnectionId { get; set; }
-		public bool Working { get; set; }
-
-		//public int PeopleHandled {
-		//	get { return WaitingTimes.Count; }
-		//}
-
-		public int PeopleHandled { get; set; }
+		public bool IsOpened { get; set; }
 
 		public double MeanWaitingTime  {
-			get { return WaitingTimes.Select(x => x.Item2).Sum(x => x.TotalMilliseconds)/PeopleHandled; }
+			get { return WaitingHistory.Count == 0 ? 0 : WaitingHistory.Sum(x => (x.StopWaitingTime - x.StartWaitingTime).TotalSeconds) / WaitingHistory.Count; }
 		}
 
 		public int WaitingPeoplesCount {
 			get { return WaitingPeoples.Count; }
 		}
 
-		public Queue<Person> WaitingPeoples = new Queue<Person>();
-		public List<Tuple<DateTime, TimeSpan>> WaitingTimes = new List<Tuple<DateTime, TimeSpan>>();  
+		public List<Person> WaitingPeoples = new List<Person>();
+		public List<WaitingPersonMeta> WaitingHistory = new List<WaitingPersonMeta>();
+
+		public List<int> WaitingHistoryValues {
+			get { return WaitingHistory.Select(x => (x.StopWaitingTime - x.StartWaitingTime).Seconds).ToList(); }
+		} 
 	}
 }

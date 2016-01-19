@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+VisualStudioVersion = 12.0.40629.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QmsServer", "QMS\QmsServer.csproj", "{4CBCB53B-B210-45DD-B770-727C60E5A3D6}"
 EndProject
@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QmsLib", "QmsLib\QmsLib.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WeightSensor", "WeightSensor\WeightSensor.csproj", "{47F340B7-8856-4632-A0D2-24CE301AC954}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InvalidSensor", "InvalidSensor\InvalidSensor.csproj", "{7BC44E54-A91F-4876-9AEF-230E33BD20AD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrippledSensor", "InvalidSensor\CrippledSensor.csproj", "{7BC44E54-A91F-4876-9AEF-230E33BD20AD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Sensors", "Sensors", "{9D015429-725A-4368-9D9C-48FFD1C52488}"
 EndProject

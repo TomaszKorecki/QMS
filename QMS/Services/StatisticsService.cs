@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using QmsLib.Models;
+using QMS.Models;
 
 namespace QMS.Services {
 	public class StatisticsService {
@@ -11,16 +12,16 @@ namespace QMS.Services {
 			get { return instance ?? (instance = new StatisticsService()); }
 		}
 
-
 		public Person UnorderedPerson { get; set; }
-		public bool? UnorderedPersonInvalid { get; set; }
+		public bool? UnorderedPersonCrippled { get; set; }
 		public bool? UnorderedPersonPregnant { get; set; }
 		public float? UnorderedPersonWeight { get; set; }
 		public float? UnorderedPersonTemperature { get; set; }
 
+		public Dictionary<Guid, HandledPerson> HandledPeople = new Dictionary<Guid, HandledPerson>(); 
 
 		public bool CheckIfUnorderedPersonCanBeDirected() {
-			if (UnorderedPersonInvalid.HasValue && UnorderedPersonPregnant.HasValue && UnorderedPersonWeight.HasValue &&
+			if (UnorderedPersonCrippled.HasValue && UnorderedPersonPregnant.HasValue && UnorderedPersonWeight.HasValue &&
 				UnorderedPersonTemperature.HasValue && UnorderedPerson != null) {
 				return true;
 			}
@@ -35,14 +36,12 @@ namespace QMS.Services {
 		}
 
 		public Person GetUnorderedPersonComplete() {
-			UnorderedPerson.IsInvalid = UnorderedPersonInvalid.Value;
+			UnorderedPerson.IsCrippled = UnorderedPersonCrippled.Value;
 			UnorderedPerson.IsPregnant = UnorderedPersonPregnant.Value;
 			UnorderedPerson.Weight = UnorderedPersonWeight.Value;
 			UnorderedPerson.Temperature = UnorderedPersonTemperature.Value;
 
 			return UnorderedPerson;
 		}
-
-
 	}
 }

@@ -20,18 +20,26 @@ namespace QueuesRunner {
 				Id = 2,
 				Name = "Second queue"
 			};
+
 			IInstitutionQueue queue3 = new InstitutionQueue() {
 				Id = 3,
 				Name = "Third queue"
 			};
 
+			IInstitutionQueue queue4 = new InstitutionQueue() {
+				Id = 4,
+				Name = "Fourth queue"
+			};
+
 			queue1.ConnectToServer();
 			queue2.ConnectToServer();
 			queue3.ConnectToServer();
+			queue4.ConnectToServer();
 
 			Console.WriteLine("Queue 1 connected");
 			Console.WriteLine("Queue 2 connected");
 			Console.WriteLine("Queue 3 connected");
+			Console.WriteLine("Queue 4 connected");
 
 			Console.ReadLine();
 		}

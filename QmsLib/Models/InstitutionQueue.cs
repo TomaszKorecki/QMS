@@ -16,7 +16,7 @@ namespace QmsLib.Models {
 		public string Name { get; set; }
 		public bool IsRegistered { get; set; }
 
-		private Queue<Guid> peopleInQueue = new Queue<Guid>();
+		private Queue<WaitingPersonMeta> peopleInQueue = new Queue<WaitingPersonMeta>();
 
 		private static int MinPersonHandlingTime = 15000;
 		private static int MaxPersonHandlingTime = 24000;
@@ -27,6 +27,8 @@ namespace QmsLib.Models {
 
 			hubProxy.On("OnRegisterConfirm", OnRegisteConfirm);
 			hubProxy.On<Guid>("AddPersonToQueue", AddPersonToQueue);
+			hubProxy.On("OnStart", OnStart);
+			hubProxy.On("OnStop", OnStop);
 
 			hubConnection.Start().Wait();
 			OnConnectedToServer();
@@ -43,6 +45,10 @@ namespace QmsLib.Models {
 
 						lock (peopleInQueue) {
 							var handled = peopleInQueue.Dequeue();
+							handled.StopWaitingTime = DateTime.Now;
+
+							Console.WriteLine("Queue {0} handled person in time {1}", Id, (handled.StopWaitingTime - handled.StartWaitingTime).TotalSeconds);
+
 							hubProxy.Invoke("PersonHandledInQueue", Id, handled);
 						}
 					}
@@ -60,15 +66,22 @@ namespace QmsLib.Models {
 			IsRegistered = true;
 		}
 
-		public void AddPersonToQueue(Guid guid) {
-			lock (peopleInQueue) {
-				peopleInQueue.Enqueue(guid);
-			}
+		public void OnStop() {
+
 		}
 
-		public void RemovePersonFromQueue() {
-			var guid = peopleInQueue.Dequeue();
-			hubProxy.Invoke("RemovePersonFromQueue", Id, guid);
+		public void OnStart() {
+
+		}
+
+
+		public void AddPersonToQueue(Guid guid) {
+			lock (peopleInQueue) {
+				peopleInQueue.Enqueue(new WaitingPersonMeta() {
+					PersonGuid = guid,
+					StartWaitingTime = DateTime.Now
+				});
+			}
 		}
 	}
 }

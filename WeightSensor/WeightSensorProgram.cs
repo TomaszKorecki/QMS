@@ -17,8 +17,8 @@ namespace WeightSensor {
 			Console.WriteLine("Weight sensor connected");
 
 
-			int minDelayBetweenPeople = 5000;
-			int maxDelayBetweenPeople = 8000;
+			int minDelayBetweenPeople = 200;
+			int maxDelayBetweenPeople = 4500;
 
 			for (int i = 0; i < 3000; i++) {
 				sensor.SendDataToServer();
